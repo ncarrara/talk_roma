@@ -1,6 +1,6 @@
 \documentclass{beamer}
 \usetheme[secheader]{Boadilla}
-
+\usepackage{todonotes}
 \defbeamertemplate*{footline}{Boadilla}
 {
     \leavevmode%
@@ -27,7 +27,7 @@
 \usepackage{pgffor}
 \usepackage[utf8]{inputenc}
 %\usepackage[cyr]{aeguill}
-\reserveinserts{28}
+%\reserveinserts{28}
 \usepackage{tikz}
 \usepackage[customcolors]{hf-tikz}
 %\usepackage[utf8]{inputenc}
@@ -84,19 +84,26 @@
 
     \begin{frame}{Motivation}
 
-        MARL deal with non-stationarity using Centralized-Training Dec-Execution (CTDE).
+        QMIX deal with non-stationarity using Centralized-Training Dec-Execution (CTDE).
 
         \begin{alertblock}{Limit}
-            Not sufficient for complex tasks.
+            Not sufficient for complex tasks with subtasks.
         \end{alertblock}
 
         \begin{exampleblock}{Solution}
-            Define and assign roles/skills to agents to fullfit a general complexe task.
-            \end{exampleblock}
+            On top of QMIX, define and assign roles/skills to agents to fulfil a general complex task.
+            \begin{itemize}
+                \item[$\rightarrow$] Construction of a stochastic role embedding space.
+            \end{itemize}
+        \end{exampleblock}
 
     \end{frame}
 
-    \begin{frame}{Background}
+    \begin{frame}{The space}
+        SHOW ROLES EMBEDDING IMAGE
+    \end{frame}
+
+    \begin{frame}{Some notations}
 
         % TODO maybe put a vienne diagram
 
@@ -155,6 +162,9 @@
         \begin{block}{In other words}
             For a given agent, given an observation, we enforce a bijection between roles and trajectories.
         \end{block}
+
+        \todo{(talk about $q_\eta$ ?)}
+
         \begin{alertblock}{}
             But what about roles \textbf{across} agents ?
         \end{alertblock}
@@ -163,7 +173,7 @@
 
     \begin{frame}{Specialization ($\mathcal{L}_{D}$)}
         All agents with similar behaviors should have similar role embeddings.
-
+        % and thus can share their experiences to improve performances
         \only<1>{
             \begin{exampleblock}{Solution}
                 Maximize $I(\rho_i;\tau_j)$
@@ -214,7 +224,7 @@
                 + \lambda_{I} \mathcal{L}_{I}(\theta_{\rho},\xi)
                 + \lambda_{D}\mathcal{L}_{D}(\theta_{\rho},\xi,\phi)$
             \end{block}
-          \begin{itemize}
+            \begin{itemize}
                 \item[] {}
             \end{itemize}
         }
@@ -252,6 +262,18 @@
                 \item Specialization loss.
             \end{itemize}
         }
+    \end{frame}
+
+    \begin{frame}{The architecture}
+
+        TODO
+
+    \end{frame}
+
+    \begin{frame}{Some results}
+
+        TODO
+
     \end{frame}
 
 %    \section{Transfer Learning}
