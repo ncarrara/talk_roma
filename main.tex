@@ -1,0 +1,307 @@
+\documentclass{beamer}
+\usetheme[secheader]{Boadilla}
+
+\defbeamertemplate*{footline}{Boadilla}
+{
+    \leavevmode%
+    \hbox{%
+%   \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,right]{author in head/foot}%
+%     \usebeamerfont{author in head/foot}\insertshortauthor~~(\insertshortinstitute)
+%   \end{beamercolorbox}%
+%   \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,right]{title in head/foot}%
+%     \usebeamerfont{title in head/foot}\insertshorttitle
+%   \end{beamercolorbox}%
+        \begin{beamercolorbox}[wd=1\paperwidth,ht=2.25ex,dp=1ex,right]{date in head/foot}%
+%     \usebeamerfont{date in head/foot}\insertshortdate{}\hspace*{2em}
+            \insertframenumber{}\hspace*{2ex}
+        \end{beamercolorbox}}%
+    \vskip0pt%
+}
+
+
+\usepackage{comment}
+% wow this is a hack that lets you have more definitions in latex.
+% see http://www.tex.ac.uk/cgi-bin/texfaq2html?label=noroom
+\usepackage{natbib}
+\usepackage{etex}
+\usepackage{pgffor}
+\usepackage[utf8]{inputenc}
+%\usepackage[cyr]{aeguill}
+\reserveinserts{28}
+\usepackage{tikz}
+\usepackage[customcolors]{hf-tikz}
+%\usepackage[utf8]{inputenc}
+%\mode<presentation>{\usetheme{Caltech}}
+
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{multimedia}
+\usepackage{color}
+\usepackage{esint}
+\usepackage{stmaryrd}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage[squaren]{SIunits}
+\usepackage{graphicx}
+\usepackage{diagbox}
+\usepackage{pdfpages}
+\usepackage{dsfont}
+\usepackage{xcolor}
+\usepackage{soul}
+\usepackage[linesnumbered,ruled,vlined]{algorithm2e}
+
+\usepackage{subfig}
+
+\graphicspath{{./img/}}
+
+\newcommand{\cplus}{\colorbox{green}{($+$)} }
+\newcommand{\cmoins}{\colorbox{red}{($-$)} }
+\newcommand{\cmean}{\colorbox{yellow}{($\pm$)}}
+
+\newcommand{\mathcolorbox}[2]{\colorbox{#1}{$\displaystyle #2$}}
+
+\input{mathdef.tex}
+%\input{../glossary.tex}
+\input{symbol.tex}
+
+\beamertemplatenavigationsymbolsempty
+
+\author[shortname]{Nicolas Carrara}
+\institute[shortinst]{University of Toronto}
+
+\title[ROMA]{ROMA: Multi-Agent RL with Emergent Roles}
+\subtitle{Tonghan Wang, Heng Dong, Victor Lesser and Chongjie Zhang}
+
+\date{April 15, 2020}
+\begin{document}
+    \begin{frame}
+        \maketitle
+        \centering
+    \end{frame}
+
+    \begin{frame}{Motivation}
+
+        MARL deal with non-stationarity using Centralized-Training Dec-Execution (CTDE).
+
+        \begin{alertblock}{Limit}
+            Not sufficient for complex tasks.
+        \end{alertblock}
+
+        \begin{exampleblock}{Solution}
+            Define and assign roles/skills to agents to fullfit a general complexe task.
+            \end{exampleblock}
+
+    \end{frame}
+
+    \begin{frame}{Background}
+
+        % TODO maybe put a vienne diagram
+
+        \begin{itemize}
+            \item $H(X)$: Entropy.
+            \item $I(X;Y)$: Mutual Information.
+            \item $I(X;Y|Z)$ Conditional mutual information.
+
+        \end{itemize}
+
+    \end{frame}
+
+    \begin{frame}{The loss function}
+        To define the loss, those roles properties must be fullfield:
+
+        \begin{itemize}
+            \item Dynamic;
+            \item Versatile;
+            \item Identifiable;
+            \item Specialized.
+        \end{itemize}
+    \end{frame}
+
+    \begin{frame}{Dynamic}
+        Two complementary aspects:
+
+        \begin{itemize}
+            \item Roles encoding in a stochastic embedding space.
+            \begin{itemize}
+                \item $\rho_i \sim \normal(\mu_{\rho_i},\sigma_{\rho_i})$
+            \end{itemize}
+            \item Role are dictacted by a local observation.
+            \begin{itemize}
+                \item $(\mu_{\rho_i},\sigma_{\rho_i}) = f(o_i|\theta_{\rho})$
+            \end{itemize}
+        \end{itemize}
+
+    \end{frame}
+
+    \begin{frame}{Identifiable and versatile ($\mathcal{L}_{I}$)}
+
+        \begin{itemize}
+            \item Versatility: given an observation, roles should be diverse.
+            \begin{itemize}
+                \item Maximise $H(\rho_i|o_i)$
+            \end{itemize}
+            \item Identifiability: a trajectory (behavior) must be identifiable by a role.
+            \begin{itemize}
+                \item Minimise $H(\rho_i|\tau_i, o_i)$
+            \end{itemize}
+        \end{itemize}
+
+        \begin{block}{}
+            Equivalent to maximise $I(\tau_i;\rho_i|o_i)$.
+        \end{block}
+        \begin{block}{In other words}
+            For a given agent, given an observation, we enforce a bijection between roles and trajectories.
+        \end{block}
+        \begin{alertblock}{}
+            But what about roles \textbf{across} agents ?
+        \end{alertblock}
+
+    \end{frame}
+
+    \begin{frame}{Specialization ($\mathcal{L}_{D}$)}
+        All agents with similar behaviors should have similar role embeddings.
+
+        \only<1>{
+            \begin{exampleblock}{Solution}
+                Maximize $I(\rho_i;\tau_j)$
+            \end{exampleblock}
+
+            \begin{alertblock}{Limit}
+                All agents will have the same role (and policy)
+            \end{alertblock}
+        }
+        \only<2>{
+            \begin{exampleblock}{Solution}
+                Maximize $I(\rho_i;\tau_j) + \mathcolorbox {green}{d_{\phi}(\tau_i,\tau_j)}$
+            \end{exampleblock}
+
+            \begin{alertblock}{Limit}
+                Might discard $d_{\phi}$
+            \end{alertblock}
+        }
+
+        \only<3>{
+            \begin{exampleblock}{Solution (final)}
+                Minimize $\mathcolorbox {green}{||(d_{\phi}(\tau_i,\tau_j))_{i,j}||_{0} }$\\
+                s.t. $I(\rho_i;\tau_j) + {d_{\phi}(\tau_i,\tau_j)}\mathcolorbox {green}{>U}$
+            \end{exampleblock}
+
+            where $U$ is the compactness of the embedding space.
+
+        }
+
+    \end{frame}
+
+
+%    \begin{exampleblock}{Solution}
+%        Learn a dissimilarity model $d_{\phi}$ for trajectories:
+%        \begin{itemize}
+%            \item Maximise $I(\rho_i;\tau_j) + d_{\phi}(\tau_i,\tau_j)$
+%        \end{itemize}
+%    \end{exampleblock}
+
+    \begin{frame}{Putting things togetheir}
+
+        Previous objectives can be expressed as 3 differentiable losses.
+
+        \vspace{0.2in}
+        \only<1>{
+            \begin{block}{Final loss}
+                $\mathcal{L}(\theta)= \mathcal{L}_{TD}(\theta)
+                + \lambda_{I} \mathcal{L}_{I}(\theta_{\rho},\xi)
+                + \lambda_{D}\mathcal{L}_{D}(\theta_{\rho},\xi,\phi)$
+            \end{block}
+          \begin{itemize}
+                \item[] {}
+            \end{itemize}
+        }
+
+        \only<2>{
+            \begin{block}{Final loss}
+                $\mathcal{L}(\theta)= \mathcolorbox {green}{\mathcal{L}_{TD}(\theta)}
+                + \lambda_{I} \mathcal{L}_{I}(\theta_{\rho},\xi)
+                + \lambda_{D}\mathcal{L}_{D}(\theta_{\rho},\xi,\phi)$
+            \end{block}
+
+            \begin{itemize}
+                \item Qmix Temporal difference loss.
+            \end{itemize}
+        }
+        \only<3>{
+            \begin{block}{Final loss}
+                $\mathcal{L}(\theta)= \mathcal{L}_{TD}(\theta)
+                + \lambda_{I} \mathcolorbox {green}{\mathcal{L}_{I}(\theta_{\rho},\xi)}
+                + \lambda_{D}\mathcal{L}_{D}(\theta_{\rho},\xi,\phi)$
+            \end{block}
+
+            \begin{itemize}
+                \item Identifiability and versatility loss.
+            \end{itemize}
+        }
+        \only<4>{
+            \begin{block}{Final loss}
+                $\mathcal{L}(\theta)= \mathcal{L}_{TD}(\theta)
+                + \lambda_{I} \mathcal{L}_{I}(\theta_{\rho},\xi)
+                + \lambda_{D}\mathcolorbox {green}{\mathcal{L}_{D}(\theta_{\rho},\xi,\phi)}$
+            \end{block}
+
+            \begin{itemize}
+                \item Specialization loss.
+            \end{itemize}
+        }
+    \end{frame}
+
+%    \section{Transfer Learning}
+
+%    \subsection{Markov Decision Process limitations}
+
+%    \begin{frame}
+%        \begin{block}{Markov Decision Processes (MDP)}
+%
+%            A tuple $(\cS, \cA, P, R, \gamma)$ where
+%
+%            \begin{itemize}
+%                \item $\cS$ is the state space; $\cA$ is the action space.
+%                \item $P$ the transition function (or dynamic); $R$ the reward function.
+%                \item $\gamma$ the discounted factor.
+%            \end{itemize}
+%        \end{block}
+%
+%        \pause
+%        \begin{block}{Solving an MDP}
+%            \begin{itemize}
+%                \item $G_r^\pi = \sum_{t=0}^\infty \gamma^t R(s_t, a_t)$ return of rewards.
+%                \item Find $\pi^*$ s.t $\forall s\in\cS$: $\pi^* \in \argmax_{\pi\in\cM(\cA)^\cS} \expectedvalue[G_r^\pi | s_0=s]$
+
+%            \end{itemize}
+%        \end{block}
+%        \pause
+%        \begin{block}{Limitations}
+%            \begin{itemize}
+%                \item  $\cS$ (or $\cA$) is large of continuous ? $\rightarrow$ Function approximation (FA).
+%                \item  $P$ or $R$ are unknown ? $\rightarrow$ Reinforcement Learning (RL).
+%                \item Too few data, learning from scratch ? $\rightarrow$ Transfer Learning (TL).
+%            \end{itemize}
+%        \end{block}
+%    \end{frame}
+%
+%    \subsection{The problem}
+%
+%    \foreach \n in {1}{
+%        \begin{frame}{}
+%            \begin{figure}
+%                \centering
+%                %%\vspace{-1.5em}
+%                \includegraphics[scale=0.75,page=1]{tl\n.pdf}
+%            \end{figure}
+%        \end{frame}
+%    }
+
+
+
+
+\end{document}
+
