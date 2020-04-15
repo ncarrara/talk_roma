@@ -18,6 +18,9 @@
     \vskip0pt%
 }
 
+\usepackage{subfigure}
+
+
 
 \usepackage{comment}
 % wow this is a hack that lets you have more definitions in latex.
@@ -53,7 +56,6 @@
 \usepackage{soul}
 \usepackage[linesnumbered,ruled,vlined]{algorithm2e}
 
-\usepackage{subfig}
 
 \graphicspath{{./img/}}
 
@@ -63,7 +65,7 @@
 
 \newcommand{\mathcolorbox}[2]{\colorbox{#1}{$\displaystyle #2$}}
 
-\input{mathdef.tex}
+\input{mathcommands.tex}
 %\input{../glossary.tex}
 \input{symbol.tex}
 
@@ -84,14 +86,16 @@
 
     \begin{frame}{Motivation}
 
-        QMIX deal with non-stationarity using Centralized-Training Dec-Execution (CTDE).
+        Mixing architectures deal with non-stationarity using CTDE.
 
+        \pause
         \begin{alertblock}{Limit}
             Not sufficient for complex tasks with subtasks.
         \end{alertblock}
-
+        \pause
         \begin{exampleblock}{Solution}
-            On top of QMIX, define and assign roles/skills to agents to fulfil a general complex task.
+            %On top of QMIX,
+            Define and assign roles/skills to agents.
             \begin{itemize}
                 \item[$\rightarrow$] Construction of a stochastic role embedding space.
             \end{itemize}
@@ -100,7 +104,20 @@
     \end{frame}
 
     \begin{frame}{The space}
-        SHOW ROLES EMBEDDING IMAGE
+        \begin{figure}
+            \includegraphics[height=0.35\linewidth]{img/10m_vs_11m-g4.pdf}\hfill
+            \includegraphics[height=0.35\linewidth]{img/10m_vs_11m-r4.pdf}\hfill
+            %\caption{Visualization of our learned role representations at a timestep.
+            %The blue agent has the maximum health, while the red ones are dead.
+            %The corresponding policy is that agent 6 moves towards enemies to take on more firepower,
+            %so that more seriously injured agents are protected.
+            %Roles can change adaptively and will aggregate according to responsibilities that are compatible
+            %with individual characteristics, such as location, agent type, health, etc.}\label{fig:teaser}
+        \end{figure}
+        \pause
+        \begin{block}{}
+            How to construct this space? Through regularizations of the loss function.
+        \end{block}
     \end{frame}
 
     \begin{frame}{Some notations}
@@ -108,9 +125,12 @@
         % TODO maybe put a vienne diagram
 
         \begin{itemize}
-            \item $H(X)$: Entropy.
-            \item $I(X;Y)$: Mutual Information.
-            \item $I(X;Y|Z)$ Conditional mutual information.
+            \item $i$: agent $i$.
+            \item $\mathcal{L}$: a loss.
+            \item $H(X)$: entropy.
+            \item $\mathcal{CE}(X\|Y)$: cross-entropy
+            \item $I(X;Y)$: mutual Information.
+            \item $I(X;Y|Z)$ conditional mutual information.
 
         \end{itemize}
 
@@ -148,63 +168,108 @@
         \begin{itemize}
             \item Versatility: given an observation, roles should be diverse.
             \begin{itemize}
-                \item Maximise $H(\rho_i|o_i)$
+                \item Maximize $\mathcolorbox{yellow}{H(\rho_i|o_i)}$
             \end{itemize}
-            \item Identifiability: a trajectory (behavior) must be identifiable by a role.
+            \pause\item Identifiability: a trajectory (behavior) must be identifiable by a role.
             \begin{itemize}
-                \item Minimise $H(\rho_i|\tau_i, o_i)$
+                \item Minimize $\mathcolorbox{yellow}{H(\rho_i|\tau_i, o_i)}$
             \end{itemize}
         \end{itemize}
-
+        \pause
         \begin{block}{}
-            Equivalent to maximise $I(\tau_i;\rho_i|o_i)$.
+            Equivalent to maximize $\mathcolorbox{yellow}{I(\tau_i;\rho_i|o_i)}$.
         \end{block}
-        \begin{block}{In other words}
-            For a given agent, given an observation, we enforce a bijection between roles and trajectories.
-        \end{block}
-
-        \todo{(talk about $q_\eta$ ?)}
-
-        \begin{alertblock}{}
-            But what about roles \textbf{across} agents ?
+%        \pause
+%        \begin{block}{In other words}
+%            For a given agent and an observation, we enforce a bijection between roles and trajectories.
+%        \end{block}
+        \pause
+        \begin{alertblock}{Limits}
+            Untractable.
         \end{alertblock}
+        \pause
+        \begin{exampleblock}{Solved using a variational posterior estimator $q_\xi$}
+
+            $\mathcal{L}_I(\theta_\rho, \xi) = \mathbb{E}_{(\tau^{t-1}_i, o^t_i)\sim D}\big[\mathcal{CE}[p(\rho^{t}_i | o^t_i)\| q_\xi(\rho^{t}_i | \tau^{t-1}_i, o^t_i)] - H(\rho^{t}_i | o^t_i)\big]$
+
+        \end{exampleblock}
+
+%        \todo{(talk about $q_\eta$ ?)}
+        \pause
+        \begin{block}{}
+            But what about roles \textbf{across} agents ?
+        \end{block}
 
     \end{frame}
 
     \begin{frame}{Specialization ($\mathcal{L}_{D}$)}
         All agents with similar behaviors should have similar role embeddings.
+        \pause
         % and thus can share their experiences to improve performances
-        \only<1>{
-            \begin{exampleblock}{Solution}
-                Maximize $I(\rho_i;\tau_j)$
-            \end{exampleblock}
-
-            \begin{alertblock}{Limit}
-                All agents will have the same role (and policy)
-            \end{alertblock}
-        }
-        \only<2>{
-            \begin{exampleblock}{Solution}
+        \begin{exampleblock}{Solution}
+            Maximize $I(\rho_i;\tau_j)$
+        \end{exampleblock}
+            \pause
+        \begin{alertblock}{Limit}
+            All agents will have the same role (and policy)
+        \end{alertblock}
+        \end{frame}
+        \begin{frame}{Specialization ($\mathcal{L}_{D}$)}
+            \begin{exampleblock}{Solution (disimilarity model)}
                 Maximize $I(\rho_i;\tau_j) + \mathcolorbox {green}{d_{\phi}(\tau_i,\tau_j)}$
             \end{exampleblock}
-
+            \pause
             \begin{alertblock}{Limit}
                 Might discard $d_{\phi}$
             \end{alertblock}
-        }
+    \end{frame}
+    \begin{frame}{Specialization ($\mathcal{L}_{D}$)}
 
-        \only<3>{
-            \begin{exampleblock}{Solution (final)}
-                Minimize $\mathcolorbox {green}{||(d_{\phi}(\tau_i,\tau_j))_{i,j}||_{0} }$\\
-                s.t. $I(\rho_i;\tau_j) + {d_{\phi}(\tau_i,\tau_j)}\mathcolorbox {green}{>U}$
-            \end{exampleblock}
+        \begin{exampleblock}{Solution (constrained program)}
 
-            where $U$ is the compactness of the embedding space.
+            \begin{align*}
+                & \text{Let}\ \mathcolorbox{green}{D_\phi=(d_{\phi}(\tau_i,\tau_j))_{i,j}}\\
+                &\underset{{\theta_\rho, \xi, \phi}}{\text{minimize}} \ \ \ \mathcolorbox {green}{\|D_\phi^t\|_{0}} \\
+                &\text{subject to} \ \ \ I(\rho^{t}_i; \tau^{t-1}_j|o^t_j) + d_\phi(\tau^{t-1}_i, \tau^{t-1}_j) \mathcolorbox {green}{>U}, \forall i\ne j
+            \end{align*}
 
-        }
+%
+        \end{exampleblock}
+
+        where $U$ can be seen as the compactness of the embedding space.
+        \pause
+        \begin{block}{}
+            If dissimilarity is high, mutual information is low.
+
+        \end{block}
+        \pause
+        \begin{alertblock}{Limit}
+            Untractable
+        \end{alertblock}
+    \end{frame}
+
+    \begin{frame}{Specialization ($\mathcal{L}_{D}$)}
+        \begin{exampleblock}{Solution (variational posterior estimator and frobenius norm)}
+            \begin{align*}
+                &\mathcal{L}_D(\theta_\rho, \phi, \xi) =
+                \\ &\mathbb{E}_{(\bm{\tau}^{t-1}, \bm{o}^t)\sim\mathcal{D}, \bm{\rho}^t\sim p(\bm{\rho}^t | \bm{o}^t)}
+                \\ &\big[\|D_\phi^t\|_{\mathcolorbox{green}{F}} - \sum_{i\ne j}\min\{\mathcolorbox{green}{q_\xi(\rho^{t}_i| \tau^{t-1}_j, o^t_j)} + d_\phi(\tau^{t-1}_i, \tau^{t-1}_j), U\}\big]
+            \end{align*}
+        \end{exampleblock}
 
     \end{frame}
 
+
+    \begin{frame}{Including roles in the mixing architecture.}
+
+        At each step:
+        \begin{itemize}
+            \pause\item Observation is encoded into role distribution parameters.
+            \pause\item A role is sampled.
+            \pause\item The role is decoded through an hypernet $g_{\theta_h}$ then feed to the local utility network.
+        \end{itemize}
+
+    \end{frame}
 
 %    \begin{exampleblock}{Solution}
 %        Learn a dissimilarity model $d_{\phi}$ for trajectories:
@@ -215,14 +280,13 @@
 
     \begin{frame}{Putting things togetheir}
 
-        Previous objectives can be expressed as 3 differentiable losses.
+        If $\theta=(\theta_\rho, \xi, \phi, \theta_h, \theta_m)$, $\lambda_I$ and $\lambda_D$ are scaling factors.
 
-        \vspace{0.2in}
         \only<1>{
             \begin{block}{Final loss}
                 $\mathcal{L}(\theta)= \mathcal{L}_{TD}(\theta)
                 + \lambda_{I} \mathcal{L}_{I}(\theta_{\rho},\xi)
-                + \lambda_{D}\mathcal{L}_{D}(\theta_{\rho},\xi,\phi)$
+                + \lambda_{D}\mathcal{L}_{D}(\theta_{\rho},\xi,\phi)$\\
             \end{block}
             \begin{itemize}
                 \item[] {}
@@ -231,18 +295,18 @@
 
         \only<2>{
             \begin{block}{Final loss}
-                $\mathcal{L}(\theta)= \mathcolorbox {green}{\mathcal{L}_{TD}(\theta)}
+                $\mathcal{L}(\theta)= \mathcolorbox {green}{\mathcal{L}_{TD}(\theta_m)}
                 + \lambda_{I} \mathcal{L}_{I}(\theta_{\rho},\xi)
                 + \lambda_{D}\mathcal{L}_{D}(\theta_{\rho},\xi,\phi)$
             \end{block}
 
             \begin{itemize}
-                \item Qmix Temporal difference loss.
+                \item Temporal Difference loss \\$\mathcal{L}_{TD}(\theta_m)$ = $[r + \gamma \max_{\va'} Q_{tot}(s', \bm{a'}; \theta_m^-)$-$Q_{tot}$($s, \bm{a}; \theta_m$)$]^2$.
             \end{itemize}
         }
         \only<3>{
             \begin{block}{Final loss}
-                $\mathcal{L}(\theta)= \mathcal{L}_{TD}(\theta)
+                $\mathcal{L}(\theta)= \mathcal{L}_{TD}(\theta_m)
                 + \lambda_{I} \mathcolorbox {green}{\mathcal{L}_{I}(\theta_{\rho},\xi)}
                 + \lambda_{D}\mathcal{L}_{D}(\theta_{\rho},\xi,\phi)$
             \end{block}
@@ -253,7 +317,7 @@
         }
         \only<4>{
             \begin{block}{Final loss}
-                $\mathcal{L}(\theta)= \mathcal{L}_{TD}(\theta)
+                $\mathcal{L}(\theta)= \mathcal{L}_{TD}(\theta_m)
                 + \lambda_{I} \mathcal{L}_{I}(\theta_{\rho},\xi)
                 + \lambda_{D}\mathcolorbox {green}{\mathcal{L}_{D}(\theta_{\rho},\xi,\phi)}$
             \end{block}
@@ -264,65 +328,74 @@
         }
     \end{frame}
 
-    \begin{frame}{The architecture}
+    \begin{frame}{The framework}
 
-        TODO
+        \begin{figure}
+            \centering
+            \includegraphics[width=1\linewidth]{img/framework.pdf}
+            %\caption{Schematics of our approach. The role encoder generates a role embedding distribution, from which a role is sampled and serves as an input to the hyper-net. The hyper-net generates the parameters of the local utility network. Local utilities are fed into a mixing network to get an estimation of the global action value. During the interactions with other agents and the environment, individual trajectories are collected and fed into the trajectory encoder to get posterior estimations of the role distributions. The framework can be trained in an end-to-end fashion.}
+            %\label{fig:framework}
+        \end{figure}
+
 
     \end{frame}
 
     \begin{frame}{Some results}
 
-        TODO
+        \begin{figure}
+            \includegraphics[width=\linewidth]{img/fig-lc/learning_curve.pdf}
+            %\caption{Comparison of our method against baseline algorithms. Results for more maps can be found in Appendix C.1.}\label{fig:performance-baselines}
+        \end{figure}
+        \pause
+        \begin{figure}
+            \includegraphics[width=\linewidth]{img/fig-lc/ablation.pdf}
+            %\caption{Comparison of our method against ablations.}\label{fig:performance-ablations}
+        \end{figure}
+
 
     \end{frame}
 
-%    \section{Transfer Learning}
+    \begin{frame}{Dynamic roles}
+        \begin{figure}
+            \centering
+            \includegraphics[height=0.17\linewidth]{img/fig-dynamic_roles/10m_vs_11m-g1.pdf}\hfill
+            \includegraphics[height=0.17\linewidth]{img/fig-dynamic_roles/10m_vs_11m-g2.pdf}\hfill
+            \includegraphics[height=0.17\linewidth]{img/fig-dynamic_roles/10m_vs_11m-g3.pdf}\\
+            \subfigure[$t$=$1$]{\includegraphics[width=0.32\linewidth]{img/fig-dynamic_roles/10m_vs_11m-r1-new.pdf}}\hfill
+            \subfigure[$t$=$8$]{\includegraphics[width=0.32\linewidth]{img/fig-dynamic_roles/10m_vs_11m-r2-new.pdf}}\hfill
+            \subfigure[$t$=$19$]{\includegraphics[width=0.32\linewidth]{img/fig-dynamic_roles/10m_vs_11m-r3-new.pdf}}
+        \end{figure}
+    \end{frame}
 
-%    \subsection{Markov Decision Process limitations}
-
-%    \begin{frame}
-%        \begin{block}{Markov Decision Processes (MDP)}
-%
-%            A tuple $(\cS, \cA, P, R, \gamma)$ where
-%
-%            \begin{itemize}
-%                \item $\cS$ is the state space; $\cA$ is the action space.
-%                \item $P$ the transition function (or dynamic); $R$ the reward function.
-%                \item $\gamma$ the discounted factor.
-%            \end{itemize}
-%        \end{block}
-%
-%        \pause
-%        \begin{block}{Solving an MDP}
-%            \begin{itemize}
-%                \item $G_r^\pi = \sum_{t=0}^\infty \gamma^t R(s_t, a_t)$ return of rewards.
-%                \item Find $\pi^*$ s.t $\forall s\in\cS$: $\pi^* \in \argmax_{\pi\in\cM(\cA)^\cS} \expectedvalue[G_r^\pi | s_0=s]$
-
-%            \end{itemize}
-%        \end{block}
-%        \pause
-%        \begin{block}{Limitations}
-%            \begin{itemize}
-%                \item  $\cS$ (or $\cA$) is large of continuous ? $\rightarrow$ Function approximation (FA).
-%                \item  $P$ or $R$ are unknown ? $\rightarrow$ Reinforcement Learning (RL).
-%                \item Too few data, learning from scratch ? $\rightarrow$ Transfer Learning (TL).
-%            \end{itemize}
-%        \end{block}
-%    \end{frame}
-%
-%    \subsection{The problem}
-%
-%    \foreach \n in {1}{
-%        \begin{frame}{}
-%            \begin{figure}
-%                \centering
-%                %%\vspace{-1.5em}
-%                \includegraphics[scale=0.75,page=1]{tl\n.pdf}
-%            \end{figure}
-%        \end{frame}
-%    }
+    \begin{frame}{Example of roles spaces}
+        \begin{figure}
+            \centering
+            \includegraphics[width=0.32\linewidth]{img/fig-various_roles/various_roles-g1.pdf}\hfill
+            \includegraphics[width=0.32\linewidth]{img/fig-various_roles/various_roles-g2.pdf}\hfill
+            \includegraphics[width=0.32\linewidth]{img/fig-various_roles/various_roles-g3.pdf}
+            \subfigure{\includegraphics[width=0.32\linewidth]{img/fig-various_roles/various_roles-r1.pdf}\label{fig:various_roles-6s4z_vs_10b30z}}\hfill
+            \subfigure{\includegraphics[width=0.32\linewidth]{img/fig-various_roles/various_roles-r2.pdf}}\hfill
+            \subfigure{\includegraphics[width=0.32\linewidth]{img/fig-various_roles/various_roles-r3.pdf}}
+        \end{figure}
 
 
+    \end{frame}
+
+    \begin{frame}{Conclusion}
+
+        \begin{itemize}
+            \item Improving the mixing architectures on complex hierachical tasks,
+            \item by using a stochastic roles embedding space.
+            \item Learned trough 2 regularizations:
+            \begin{itemize}
+                \item Versatily+Identifiability sub-loss;
+                \item Specialization sub-loss.
+            \end{itemize}
+
+        \end{itemize}
+
+
+    \end{frame}
 
 
 \end{document}
