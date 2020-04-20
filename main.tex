@@ -176,9 +176,9 @@
             \end{itemize}
         \end{itemize}
         \pause
-        \begin{block}{}
-            Equivalent to maximize $\mathcolorbox{yellow}{I(\tau_i;\rho_i|o_i)}$.
-        \end{block}
+        \begin{exampleblock}{Solution}
+            maximize $\mathcolorbox{yellow}{I(\tau_i;\rho_i|o_i)}$.
+        \end{exampleblock}
 %        \pause
 %        \begin{block}{In other words}
 %            For a given agent and an observation, we enforce a bijection between roles and trajectories.
@@ -187,10 +187,12 @@
         \begin{alertblock}{Limits}
             Untractable.
         \end{alertblock}
-        \pause
-        \begin{exampleblock}{Solved using a variational posterior estimator $q_\xi$}
+    \end{frame}
+    \begin{frame}{Identifiable and versatile ($\mathcal{L}_{I}$)}
 
-            $\mathcal{L}_I(\theta_\rho, \xi) = \mathbb{E}_{(\tau^{t-1}_i, o^t_i)\sim D}\big[\mathcal{CE}[p(\rho^{t}_i | o^t_i)\| q_\xi(\rho^{t}_i | \tau^{t-1}_i, o^t_i)] - H(\rho^{t}_i | o^t_i)\big]$
+        \begin{exampleblock}{Solution (\colorbox{green}{variational posterior estimator $q_\xi$})}
+
+            $\mathcal{L}_I(\theta_\rho, \xi) = \mathbb{E}_{(\tau^{t-1}_i, o^t_i)\sim D}\big[\mathcal{CE}[p(\rho^{t}_i | o^t_i)\| \mathcolorbox{green}{q_\xi(\rho^{t}_i | \tau^{t-1}_i, o^t_i)}] - H(\rho^{t}_i | o^t_i)\big]$
 
         \end{exampleblock}
 
@@ -203,44 +205,45 @@
     \end{frame}
 
     \begin{frame}{Specialization ($\mathcal{L}_{D}$)}
-        All agents with similar behaviors should have similar role embeddings.
+        To encourage subtasks specialization:
         \pause
         % and thus can share their experiences to improve performances
         \begin{exampleblock}{Solution}
-            Maximize $I(\rho_i;\tau_j)$
+            Maximize $\mathcolorbox {yellow}{I(\rho_i;\tau_j| o_j)}$
         \end{exampleblock}
-            \pause
+        \pause
         \begin{alertblock}{Limit}
             All agents will have the same role (and policy)
         \end{alertblock}
-        \end{frame}
-        \begin{frame}{Specialization ($\mathcal{L}_{D}$)}
-            \begin{exampleblock}{Solution (disimilarity model)}
-                Maximize $I(\rho_i;\tau_j) + \mathcolorbox {green}{d_{\phi}(\tau_i,\tau_j)}$
-            \end{exampleblock}
-            \pause
-            \begin{alertblock}{Limit}
-                Might discard $d_{\phi}$
-            \end{alertblock}
     \end{frame}
+%    \begin{frame}{Specialization ($\mathcal{L}_{D}$)}
+%        \begin{exampleblock}{Solution (disimilarity model)}
+%            Maximize $I(\rho_i;\tau_j) + \mathcolorbox {green}{d_{\phi}(\tau_i,\tau_j)}$
+%        \end{exampleblock}
+%        \pause
+%        \begin{alertblock}{Limit}
+%            Might discard $d_{\phi}$
+%        \end{alertblock}
+%    \end{frame}
     \begin{frame}{Specialization ($\mathcal{L}_{D}$)}
 
-        \begin{exampleblock}{Solution (constrained program)}
+        To encourage subtasks specialization:
+
+        \begin{exampleblock}{Solution (dissimilarity and constrained program)}
 
             \begin{align*}
-                & \text{Let}\ \mathcolorbox{green}{D_\phi=(d_{\phi}(\tau_i,\tau_j))_{i,j}}\\
-                &\underset{{\theta_\rho, \xi, \phi}}{\text{minimize}} \ \ \ \mathcolorbox {green}{\|D_\phi^t\|_{0}} \\
-                &\text{subject to} \ \ \ I(\rho^{t}_i; \tau^{t-1}_j|o^t_j) + d_\phi(\tau^{t-1}_i, \tau^{t-1}_j) \mathcolorbox {green}{>U}, \forall i\ne j
+                & \text{Let}\ {D_\phi=(d_{\phi}(\tau_i,\tau_j))_{i,j}}\\
+                &\mathcolorbox{orange}{\underset{{\theta_\rho, \xi, \phi}}{\text{minimize}}} \ \ \ \mathcolorbox {orange}{\|D_\phi^t\|_{0}} \\
+                &\text{subject to} \ \ \ \mathcolorbox {yellow}{I(\rho^{t}_i; \tau^{t-1}_j|o^t_j)} + \mathcolorbox {orange}{d_\phi(\tau^{t-1}_i, \tau^{t-1}_j)} \mathcolorbox {yellow}{>U}, \forall i\ne j
             \end{align*}
 
 %
         \end{exampleblock}
 
-        where $U$ can be seen as the compactness of the embedding space.
+%        where $U$ controls the compactness of the embedding space.
         \pause
         \begin{block}{}
-            If dissimilarity is high, mutual information is low.
-
+            Encourage \colorbox{yellow}{compactness} and \colorbox{orange}{diversity} ($U$ is the slider).
         \end{block}
         \pause
         \begin{alertblock}{Limit}
@@ -249,11 +252,11 @@
     \end{frame}
 
     \begin{frame}{Specialization ($\mathcal{L}_{D}$)}
-        \begin{exampleblock}{Solution (variational posterior estimator and frobenius norm)}
+        \begin{exampleblock}{Solution (\colorbox{cyan}{relaxation} and \colorbox{green}{variational posterior estimator})}
             \begin{align*}
                 &\mathcal{L}_D(\theta_\rho, \phi, \xi) =
                 \\ &\mathbb{E}_{(\bm{\tau}^{t-1}, \bm{o}^t)\sim\mathcal{D}, \bm{\rho}^t\sim p(\bm{\rho}^t | \bm{o}^t)}
-                \\ &\big[\|D_\phi^t\|_{\mathcolorbox{green}{F}} - \sum_{i\ne j}\min\{\mathcolorbox{green}{q_\xi(\rho^{t}_i| \tau^{t-1}_j, o^t_j)} + d_\phi(\tau^{t-1}_i, \tau^{t-1}_j), U\}\big]
+                \\ &\big[\|D_\phi^t\|_{\mathcolorbox{cyan}{F}} - \sum_{i\ne j}\min\{\mathcolorbox{green}{q_\xi(\rho^{t}_i| \tau^{t-1}_j, o^t_j)} + d_\phi(\tau^{t-1}_i, \tau^{t-1}_j), U\}\big]
             \end{align*}
         \end{exampleblock}
 
@@ -266,7 +269,7 @@
         \begin{itemize}
             \pause\item Observation is encoded into role distribution parameters.
             \pause\item A role is sampled.
-            \pause\item The role is decoded through an hypernet $g_{\theta_h}$ then feed to the local utility network.
+            \pause\item The role is decoded through an hypernet $\mathcolorbox{yellow}{g_{\theta_h}}$ then feed to the local utility network.
         \end{itemize}
 
     \end{frame}
