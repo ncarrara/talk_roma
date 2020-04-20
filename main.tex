@@ -84,17 +84,146 @@
         \centering
     \end{frame}
 
-    \begin{frame}{Motivation}
+    \begin{frame}{Cooperative \textbf{M}ulti \textbf{A}gent \textbf{R}einforcement \textbf{L}earning}
 
-        Mixing architectures deal with non-stationarity using CTDE.
+        \begin{figure}
+            \includegraphics[width=0.75\linewidth]{img/marl.pdf}
+            %\caption{Comparison of our method against baseline algorithms. Results for more maps can be found in Appendix C.1.}\label{fig:performance-baselines}
+        \end{figure}
+        \pause
+        \begin{exampleblock}{}
+            Can be be cast as a Dec-POMDP
+        \end{exampleblock}
+
+    \end{frame}
+
+    \begin{frame}{\textbf{Dec}entralized \textbf{P}artially \textbf{O}bservable \textbf{M}arkov \textbf{D}ecision \textbf{P}rocess}
+
+
+        \begin{columns}
+            \pause
+            \begin{column}{0.45\textwidth}
+                \begin{block}{Definition}
+                    $G=\left\langle S,U,P,r,Z,O,n,\gamma\right\rangle$
+                    \begin{itemize}
+                        \item[$n$] the number of agents.
+                        \item[$S$] the true-state space.
+                        \item[$U$] the joint action space.
+                        \item[$P$] the transition function.
+                        \item[$r$] the reward function.
+                        \item[$Z$] the observation space.
+                        \item[$O$] the observation function.
+                        \item[$\gamma$] the discount factor.
+                    \end{itemize}
+                \end{block}
+            \end{column}
+            \pause
+            \begin{column}{0.50\textwidth}
+                \begin{block}{Solving a Dec-POMDP}
+                    \begin{itemize}
+                        \item[$\tau^a$] action-observation history.
+                        \item[$\pi^a$] the stochastic local policy
+                        \item[$\pi$] the stochastic joint policy.
+                        \item[$R_t$] $=\sum^{\infty}_{i=0}\gamma^ir_{t+i}$ the return.
+                    \end{itemize}
+                \end{block}
+            \end{column}
+        \end{columns}
+
+    \end{frame}
+
+    \begin{frame}{Two extremes solutions}
+        \pause
+        \begin{block}{Cast as an MDP.}
+            \begin{itemize}
+                \item[] \cplus Optimal solution.
+                \item[] \cmoins Action space untractable.
+                \item[] \cmoins Assume the environment is fully observable.
+                %\item Q-learning, DQN, IMPALA ...
+            \end{itemize}
+        \end{block}
+        \pause
+        \begin{block}{Independent local MDPs.}
+            \begin{itemize}
+                \item[] \cplus Tractable.
+                \item[] \cplus Local views.
+                \item[] \cmoins Not optimal.
+                \item[] \cmoins May not converge (non stationarity).
+                %\item IQL ...
+            \end{itemize}
+        \end{block}
+    \end{frame}
+
+    \begin{frame}{Mixing architectures}
+
+        Based on \textbf{C}entralized \textbf{T}raining \textbf{D}ecentralized \textbf{E}xecution.
+
+        \begin{columns}
+            \pause
+            \begin{column}{0.5\textwidth}
+                \begin{figure}
+                    \includegraphics[width=\linewidth]{img/mixing_network.pdf}
+                    %\caption{Comparison of our method against baseline algorithms. Results for more maps can be found in Appendix C.1.}\label{fig:performance-baselines}
+                \end{figure}
+            \end{column}
+            \pause
+            \begin{column}{0.5\textwidth}  %%<--- here
+                \begin{block}{Example}
+                    \textbf{V}alue \textbf{D}ecomposition \textbf{N}etworks.
+
+                    \begin{equation}
+                        Q_{tot}(\boldsymbol{\tau}, \mathbf{u}) = \sum_{i=1}^n Q_i (\tau^i, u^i;\theta^i)\nonumber.
+                    \end{equation}
+                \end{block}
+            \end{column}
+        \end{columns}
+
+    \end{frame}
+
+    \begin{frame}{Q-mix}
+        \vspace{-0.5cm}
+        \begin{columns}
+            \pause
+            \begin{column}{0.62\textwidth}
+                \begin{block}{Generalisation of $Q_{tot}$ factorisation.}
+                    \begin{equation}
+                        \argmax_{\mathbf{u}}Q_{tot}(\boldsymbol{\tau}, \mathbf{u}) =
+                        \begin{pmatrix}
+                            \argmax_{u^1}Q_1(\tau^1, u^1)   \\
+                            \vdots \\
+                            \argmax_{u^n}Q_n(\tau^n, u^n) \\
+                        \end{pmatrix}\nonumber
+                    \end{equation}
+                \end{block}
+            \end{column}
+            \pause
+            \begin{column}{0.33\textwidth}  %%<--- here
+                \begin{minipage}[c][0.5\textheight][c]{\linewidth}
+                    \begin{block}{Enforcing monotonicity}
+                        \begin{equation}
+                            \frac{\partial Q_{tot}}{\partial Q_a}  \geq 0,~ \forall a \in A. \nonumber
+                        \end{equation}
+                    \end{block}
+                \end{minipage}
+            \end{column}
+        \end{columns}
+
+        \pause
+        \begin{center}
+            \includegraphics[width=0.75\linewidth]{img/QMIX.png}
+        \end{center}
+
+
+    \end{frame}
+
+    \begin{frame}{ROMA}
 
         \pause
         \begin{alertblock}{Limit}
-            Not sufficient for complex tasks with subtasks.
+            Mixing architectures are not sufficient for complex tasks with subtasks.
         \end{alertblock}
         \pause
-        \begin{exampleblock}{Solution}
-            %On top of QMIX,
+        \begin{exampleblock}{Solution:  \textbf{R}ole \textbf{O}riented \textbf{M}ulti-\textbf{A}gents RL.}
             Define and assign roles/skills to agents.
             \begin{itemize}
                 \item[$\rightarrow$] Construction of a stochastic role embedding space.
